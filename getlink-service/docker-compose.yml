@@ -1,0 +1,36 @@
+services:
+  getlink:
+    build: .
+    container_name: getlink
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATA_DIR: /data
+    volumes:
+      - getlink-data:/data          # state.json / meta.json live here (survives rebuilds)
+    ports:
+      - "127.0.0.1:8000:8000"       # local only; Caddy (below) or your own proxy exposes it
+    shm_size: "1gb"                 # Chromium needs shared memory
+
+  # Optional HTTPS with automatic Let's Encrypt certificates:
+  #   set DOMAIN in .env, then:  docker compose --profile https up -d --build
+  caddy:
+    image: caddy:2
+    profiles: ["https"]
+    container_name: getlink-caddy
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - getlink
+
+volumes:
+  getlink-data:
+  caddy-data:
+  caddy-config:

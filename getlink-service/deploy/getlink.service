@@ -1,0 +1,18 @@
+# Optional: run WITHOUT Docker. Copy to /etc/systemd/system/getlink.service
+# then: sudo systemctl daemon-reload && sudo systemctl enable --now getlink
+[Unit]
+Description=GetLink web service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/opt/getlink-service
+EnvironmentFile=/opt/getlink-service/.env
+Environment=PLAYWRIGHT_BROWSERS_PATH=/opt/getlink-service/.browsers
+ExecStart=/opt/getlink-service/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
